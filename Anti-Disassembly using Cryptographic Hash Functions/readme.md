@@ -27,3 +27,52 @@ Từ đó có được opcode: ```48``` ```89``` ```fe``` ```48```
 Từ hàm kiểm tra thấy được tham số truyền vào được so sánh với ```0x7B3DC26F1```
 
 ![New Bitmap Image](https://user-images.githubusercontent.com/101321172/157844923-de9b6735-891f-41a1-9a6c-24ddfc78f587.png)
+
+Vậy nhiệm vụ của chúng ta là tìm 12 ký tự còn lại 
+
+Để đến được địa chỉ ```0x7B3DC26F1``` chúng ta có thể thực hiện lệnh sau
+
+```nasm
+mov rsi, rdi ;Có từ D1v1
+mov rdi, 0x7B3DC26F1 ;Địa chỉ mong muốn đến được
+call rsi ; call đến địa chỉ đấy
+```
+
+chuyển sang opcode thì sẽ được: 0xBF, 0xF1, 0x26, 0xDC, 0xB3, 0x07, 0x00, 0x00, 0x00, 0xFF, 0xD6
+
+Đây là các byte cần bruteforce
+
+Code bruteforce (lấy trên mạng :()
+
+```python
+import hashlib
+
+requiredBytes = ["4889fe48", "bff126dc", "b3070000", "00ffd6"]
+offsets = [8,2,7,1]
+requiredString = ["GpLaMjEW", "pVOjnnmk", "RGiledp6", "Mvcezxls"]
+found = False
+password = []
+for x in range(0, len(requiredString), 1):
+    found = False
+    #Generate 4 characters per iteration
+    for a in range(33, 123, 1):
+        for b in range(33, 123, 1):
+            for c in range(33, 123, 1):
+                for d in range(33, 123, 1):
+                    hashThis = chr(a) + chr(b) + chr(c) + chr(d) + requiredString[x]
+                    result = hashlib.md5(hashThis.encode()).hexdigest()
+                    #print(result)
+                    if (result[offsets[x]*2:offsets[x]*2+len(requiredBytes[x])] == requiredBytes[x]):
+                        password.append(hashThis)
+                        print("Found smth!")
+                        print(hashThis[:4])
+                        found = True
+                        break
+
+                if found:
+                    break
+            if found:
+                break
+        if found:
+            break
+```
